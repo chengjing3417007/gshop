@@ -4,44 +4,45 @@
       <div class="login_header">
         <h2 class="login_logo">硅谷外卖</h2>
         <div class="login_header_title">
-          <a href="javascript:;" class="on">短信登录</a>
-          <a href="javascript:;" >密码登录</a>
+          <a href="javascript:;" :class="{on:loginWay}" @click="loginWay=true">短信登录</a>
+          <a href="javascript:;" :class="{on:!loginWay}" @click="loginWay=false">密码登录</a>
         </div>
       </div>
       <div class="login_content">
         <form>
-          <div class="on">
+          <div :class="{on:loginWay}" @click="loginWay=true">
             <section class="login_message">
-              <input type="tel" maxlength="11" placeholder="手机号">
-              <button disabled="disabled" class="get_verification" >获取验证码</button>
+              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone">
+              <button :disabled="computeTime>0 || !rightPhone" class="get_verification" :class="{right_phone_number:rightPhone&&computeTime === 0}" @click.prevent="sendCode">{{computeTime>0?`已发送${computeTime}s`:'获取验证码'}}</button>
             </section>
             <section class="login_verification">
-              <input type="tel" maxlength="8" placeholder="验证码">
+              <input type="tel" maxlength="8" placeholder="验证码" v-model="code">
             </section>
             <section class="login_hint">
               温馨提示：未注册硅谷外卖帐号的手机号，登录时将自动注册，且代表已同意
               <a href="javascript:;">《用户服务协议》</a>
             </section>
           </div>
-          <div>
+          <div :class="{on:!loginWay}" @click="loginWay=false">
             <section>
               <section class="login_message">
-                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名">
+                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" v-model="name">
               </section>
               <section class="login_verification">
-                <input type="tel" maxlength="8" placeholder="密码">
-                <div class="switch_button off">
-                  <div class="switch_circle"></div>
-                  <span class="switch_text">...</span>
+                <input type="text" maxlength="8" placeholder="密码" v-model="pwd" v-if="showPwd">
+                <input type="password" maxlength="8" placeholder="密码" v-model="pwd" v-else>
+                <div class="switch_button" @click="showPwd=!showPwd" :class="showPwd?'on':'off'">
+                  <div class="switch_circle" :class="{right:showPwd}"></div>
+                  <span class="switch_text">{{showPwd?'abc':''}}</span>
                 </div>
               </section>
               <section class="login_message">
-                <input type="text" maxlength="11" placeholder="验证码">
-                <img class="get_verification" src="./captcha.svg" alt="captcha">
+                <input type="text" maxlength="11" placeholder="验证码" v-model="captcha">
+                <img class="get_verification" src='http://localhost:3000/captcha' alt="captcha" @click="updateCaptcha">
               </section>
             </section>
           </div>
-          <button class="login_submit">登录</button>
+          <button class="login_submit" @click.prevent="userLogin">登录</button>
         </form>
         <a href="javascript:;" class="about_us">关于我们</a>
       </div>
@@ -49,11 +50,103 @@
         <i class="iconfont icon-jiantou2"></i>
       </a>
     </div>
+    <AlertTip v-if="isShowAlert" :alertText="alertText" @closeTip="closeTip"/>
   </div>
 </template>
 
 <script>
-export default {}
+import AlertTip from '../../components/AlertTip/AlertTip.vue'
+import {loginPwd, loginSms,sendCode} from '../../api'
+export default {
+  data () {
+    return {
+      loginWay: true, // 手机号登陆/密码登陆
+      phone: '', // 电话号码
+      code: '', // 验证码
+      name: '', // 用户名
+      pwd: '', // 密码
+      captcha: '', // 一次性验证码
+      computeTime: 0, // 倒计时的时间
+      showPwd: false, // 显示隐藏密码
+      isShowAlert: false, // 一开始提示框不显示
+      alertText: ''
+    }
+  },
+  computed: { // 拿到电话号码phone判断是否合法
+    rightPhone () {
+      return /^1\d{10}$/.test(this.phone)
+    }
+  },
+  methods: {
+    async sendCode () {
+      // event.target.className = 'get_verification'
+      this.computeTime = 30
+      const intervalId = setInterval(() => {
+        this.computeTime--
+        if (this.computeTime === 0) {
+          // event.target.className = 'get_verification right_phone_number'
+          clearInterval(intervalId)
+        }
+      }, 1000)
+      const result = await sendCode(this.phone)
+      if (result.code === 1) { // 发送失败
+        this.alertMsg(true, result.msg)
+        clearInterval(intervalId)
+        this.computeTime = 0
+      }
+    },
+    updateCaptcha (event) {
+      event.target.src = 'http://localhost:3000/captcha?time' + Date.now()
+    },
+    alertMsg (isMsg, msg) {
+      this.isShowAlert = isMsg
+      this.alertText = msg
+    },
+    async userLogin () { // 用户登录(phone,code)
+      let result
+      const {phone, code, name, pwd, captcha, rightPhone} = this
+      if (this.loginWay) { // 证明是电话登陆
+        if (!rightPhone) { // 如果他的号码不正确
+          this.alertMsg(true, '请输入正确的号码')
+          return
+        } else if (!/^\d{6}$/.test(code)) {
+          this.alertMsg(true, '请输入正确的验证码')
+          return
+        }
+        // 如果电话登陆验证成功
+        result = await loginSms({phone, code})
+      } else { // 证明是用户名、密码登陆(name, pwd, captcha)
+        if (!name) {
+          this.alertMsg(true, '您输入的用户名为空')
+          return
+        } else if (!pwd) {
+          this.alertMsg(true, '您输入的密码为空')
+          return
+        } else if (!captcha) {
+          this.alertMsg(true, '您输入的验证码为空')
+          return
+        }
+        // 如果用户名，密码登陆验证成功
+        result = await loginPwd({name, pwd, captcha})
+      }
+      // 验证失败
+      if (result.code === 1) {
+        this.alertMsg(true, result.msg)
+      } else { // 验证成功
+        const userInfo = result.data
+        this.$store.dispatch('saveUserInfo', userInfo)
+        console.log('验证成功，得到的用户信息是' + this.userInfo)
+        this.$router.replace('/profile')
+      }
+    },
+    closeTip () {
+      this.alertMsg(false, '')
+    }
+  },
+  components: {
+    AlertTip
+  }
+}
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
@@ -117,6 +210,8 @@ export default {}
                 color #ccc
                 font-size 14px
                 background transparent
+                &.right_phone_number
+                  color black
             .login_verification
               position relative
               margin-top 16px
@@ -156,6 +251,8 @@ export default {}
                   background #fff
                   box-shadow 0 2px 4px 0 rgba(0,0,0,.1)
                   transition transform .3s
+                  &.right
+                    transform translateX(26px)
             .login_hint
               margin-top 12px
               color #999
