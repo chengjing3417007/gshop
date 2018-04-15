@@ -56,7 +56,7 @@
 
 <script>
 import AlertTip from '../../components/AlertTip/AlertTip.vue'
-import {loginPwd, loginSms,sendCode} from '../../api'
+import {loginPwd, loginSms, sendCode} from '../../api'
 export default {
   data () {
     return {

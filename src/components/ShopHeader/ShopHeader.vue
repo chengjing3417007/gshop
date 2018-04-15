@@ -1,74 +1,71 @@
 <template>
-    <div class="shop-header">
-      <div class="content-wrapper">
-        <div class="avatar">
-          <img :src="shopInfo.avatar" >
-          <div class="back" @click="$router.replace('/msite')">
-            <i class="iconfont icon-arrow_left"></i>
-          </div>
-        </div>
-        <div class="content">
-          <div class="title">
-            <span class="brand"></span>
-            <span class="name">{{shopInfo.name}}</span>
-          </div>
-          <div class="description">{{shopInfo.description}}/{{shopInfo.deliveryTime}}分钟送达</div>
-          <div class="supports" v-if="shopInfo.supports">
-            <span class="icon" :class="supportsClassName[shopInfo.supports[0].type]"></span>
-            <span class="text">{{shopInfo.supports[0].description}}</span>
-          </div>
-          <div class="supports-count" v-if="shopInfo.supports" @click="toggleShowBg">
-            <span class="count">{{shopInfo.supports.length}}个</span>
-            <span class="iconfont icon-keyboard_arrow_right" ></span>
-          </div>
+  <div class="shop-header">
+    <div class="content-wrapper">
+      <div class="avatar">
+        <img :src="shopInfo.avatar">
+        <div class="back" @click="$router.replace('/msite')">
+          <i class="iconfont icon-arrow_left"></i>
         </div>
       </div>
-      <div class="bulletin-wrapper" @click="toggleShowBg">
-        <span class="bulletin-title"></span>
-        <span class="bulletin-text">
-        {{shopInfo.bulletin}}
-        </span>
-        <span class="iconfont icon-keyboard_arrow_right"></span>
-      </div>
-      <div class="bg">
-        <img :src="shopInfo.avatar" alt="avatar">
-      </div>
-
-      <transition name="fade">
-        <div class="mask" v-show="isShow">
-          <div class="mask-wrapper">
-            <div class="mask-main">
-              <h1>{{shopInfo.name}}</h1>
-              <div class="stars-wrapper">
-                <Star :score="shopInfo.score" :size="48"/>
-              </div>
-              <div class="info">
-                <div class="line"></div>
-                <div class="text">优惠信息</div>
-                <div class="line"></div>
-              </div>
-              <ul class="list" v-for="(support,index) in shopInfo.supports" :key="index">
-                <li>
-                  <span class="iocn" :class="support.type"></span>
-                  <span>{{support.description}}</span>
-                </li>
-              </ul>
-              <div class="info">
-                <div class="line"></div>
-                <div class="text">商家公告</div>
-                <div class="line"></div>
-              </div>
-              <div class="context">
-                <p class="text">{{shopInfo.bulletin}}</p>
-              </div>
-            </div>
-          </div>
-          <div class="mask-footer">
-            <span class="iconfont icon-close" @click="toggleShowBg"></span>
-          </div>
+      <div class="content">
+        <div class="title">
+          <span class="brand"></span>
+          <span class="name">{{shopInfo.name}}</span>
         </div>
-      </transition>
+        <div class="description">{{shopInfo.description}}/{{shopInfo.deliveryTime}}分钟送达</div>
+        <div class="supports" v-if="shopInfo.supports">
+          <span class="icon" :class="supportsClassName[shopInfo.supports[0].type]"></span>
+          <span class="text">{{shopInfo.supports[0].description}}</span>
+        </div>
+        <div class="supports-count" @click="toggleShowBg">
+          <span class="count" v-if="shopInfo.supports">{{shopInfo.supports.length}}个</span>
+          <span class="iconfont icon-keyboard_arrow_right"></span>
+        </div>
+      </div>
     </div>
+    <div class="bulletin-wrapper" @click="toggleShowBg">
+      <span class="bulletin-title"></span>
+      <span class="bulletin-text">{{shopInfo.bulletin}}</span>
+      <span class="iconfont icon-keyboard_arrow_right"></span>
+    </div>
+    <div class="bg">
+      <img :src="shopInfo.avatar">
+    </div>
+    <transition name="fade">
+      <div class="mask" v-show="isShow">
+      <div class="mask-wrapper">
+        <div class="mask-main">
+          <h1>{{shopInfo.name}}</h1>
+          <div class="stars-wrapper">
+            <Star :score="shopInfo.score" :size="48"/>
+          </div>
+          <div class="info">
+            <div class="line"></div>
+            <div class="text">优惠信息</div>
+            <div class="line"></div>
+          </div>
+          <ul class="list">
+            <li v-for="(support,index) in shopInfo.supports" :key="index">
+              <span class="iocn" :class="support.type"></span>
+              <span>{{support.description}}</span>
+            </li>
+          </ul>
+          <div class="info">
+            <div class="line"></div>
+            <div class="text">商家公告</div>
+            <div class="line"></div>
+          </div>
+          <div class="context">
+            <p class="text">{{shopInfo.bulletin}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="mask-footer">
+        <span class="iconfont icon-close" @click="toggleShowBg"></span>
+      </div>
+    </div>
+    </transition>
+  </div>
 </template>
 
 <script>

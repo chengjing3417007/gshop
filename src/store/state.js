@@ -7,5 +7,6 @@ export default {
   shops: [], // 商店列表
   shopGoods: [], // 食品列表分类
   shopRatings: [], // 食品相关评价
-  shopInfo: {} // 食品详情
+  shopInfo: {}, // 食品详情
+  shopCart: [] // 购物车列表
 }

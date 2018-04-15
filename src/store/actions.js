@@ -5,7 +5,10 @@ import {
   RECEIVE_SHOPS_GOODS,
   RECEIVE_SHOPS_INFO,
   RECEIVE_SHOPS_RATINGS,
-  RECEIVE_USER_INFO
+  RECEIVE_USER_INFO,
+  INCREMENT_FOOD_COUNT,
+  DECREMENT_FOOD_COUNT,
+  CLEAR_CHART
 } from './mutation-types'
 import {
   reqAdress,
@@ -58,11 +61,12 @@ export default {
   },
   // mock数据的三个接口
   // 发送异步接收商店食品列表
-  async getShopsGoods ({commit}) {
+  async getShopsGoods ({commit}, callback) {
     const result = await reqShopGoods()
     if (result.code === 0) {
       const shopsGoods = result.data
       commit(RECEIVE_SHOPS_GOODS, {shopsGoods})
+      callback && callback()
     }
   },
   // 发送异步接收食品列信息
@@ -74,11 +78,24 @@ export default {
     }
   },
   // 发送异步接收食品列信息
-  async getShopRatings ({commit}) {
+  async getShopRatings ({commit}, cb) {
     const result = await reqShopRatings()
     if (result.code === 0) {
       const shopRatings = result.data
       commit(RECEIVE_SHOPS_RATINGS, {shopRatings})
+      cb && cb()
     }
+  },
+  // 同步获取food
+  updateFoodCount ({commit}, {food, isAdd}) {
+    if (isAdd) { // 增加
+      commit(INCREMENT_FOOD_COUNT, {food})
+    } else { // 减少
+      commit(DECREMENT_FOOD_COUNT, {food})
+    }
+  },
+  // 清空购物车
+  clearChart ({commit}) {
+    commit(CLEAR_CHART)
   }
 }
